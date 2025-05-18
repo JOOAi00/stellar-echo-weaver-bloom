@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
@@ -9,7 +9,6 @@ import { PlusCircle, X, Upload } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/context';
-import { useRef } from 'react';
 
 interface QRAdvancedOptionsProps {
   cornerRadius: number;
@@ -56,6 +55,14 @@ const QRAdvancedOptions = ({
   // Handle error correction level change
   const handleErrorCorrectionChange = (value: string) => {
     setLevel(value);
+    
+    // Show success toast when error correction level is changed
+    toast({
+      title: language === "ar" ? "تم تحديث مستوى تصحيح الخطأ" : "Error Correction Updated",
+      description: language === "ar" 
+        ? `تم تعيين مستوى تصحيح الخطأ إلى ${value}` 
+        : `Error correction level set to ${value}`,
+    });
   };
   
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -84,6 +84,12 @@ const QRCodeTypePage = () => {
   // Handle error correction level change
   const handleErrorLevelChange = (value: string) => {
     setErrorLevel(value);
+    toast({
+      title: language === "ar" ? "تم تحديث مستوى تصحيح الخطأ" : "Error Correction Updated",
+      description: language === "ar" 
+        ? `تم تعيين مستوى تصحيح الخطأ إلى ${value}` 
+        : `Error correction level set to ${value}`,
+    });
   };
   
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -187,6 +193,14 @@ const QRCodeTypePage = () => {
                     className="w-full" 
                     aria-label={language === "ar" ? "محتوى كود QR" : "QR code content"}
                   />
+                  {/* Add helper text for image type */}
+                  {selectedType === 'image' && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      {language === "ar" 
+                        ? "أدخل رابط URL مباشر لصورة متاحة على الإنترنت"
+                        : "Enter a direct URL to an image available on the internet"}
+                    </p>
+                  )}
                 </div>
                 
                 <Tabs defaultValue="design" className="w-full">
@@ -346,7 +360,7 @@ const QRCodeTypePage = () => {
                   className="w-full bg-purple-600 hover:bg-purple-700 rounded-full py-6 mt-4"
                 >
                   <QrCode className="mr-2 h-5 w-5" /> 
-                  Generate QR Code
+                  {language === "ar" ? "إنشاء رمز QR" : "Generate QR Code"}
                 </Button>
               </div>
             </div>
@@ -383,7 +397,7 @@ const QRCodeTypePage = () => {
                         navigate("/login");
                       }
                     }}>
-                      Download
+                      {language === "ar" ? "تنزيل" : "Download"}
                     </Button>
                     <Button variant="secondary" className="text-xs" onClick={() => {
                       if (isLoggedIn) {
@@ -396,7 +410,7 @@ const QRCodeTypePage = () => {
                         navigate("/login");
                       }
                     }}>
-                      Copy
+                      {language === "ar" ? "نسخ" : "Copy"}
                     </Button>
                     <Button variant="secondary" className="text-xs" onClick={() => {
                       if (isLoggedIn) {
@@ -409,7 +423,7 @@ const QRCodeTypePage = () => {
                         navigate("/login");
                       }
                     }}>
-                      Share
+                      {language === "ar" ? "مشاركة" : "Share"}
                     </Button>
                   </div>
                 )}

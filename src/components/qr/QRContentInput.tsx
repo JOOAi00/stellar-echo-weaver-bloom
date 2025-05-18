@@ -1,10 +1,9 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Eye, EyeOff } from 'lucide-react';
+import { useUser } from '@/context';
 
 interface QRContentInputProps {
   qrType: string;
@@ -13,221 +12,111 @@ interface QRContentInputProps {
 }
 
 /**
- * QR Content Input component for different QR types
+ * Component for different QR content input types
  */
 const QRContentInput = ({ qrType, qrValue, handleContentChange }: QRContentInputProps) => {
-  // WiFi specific states
-  const [wifiNetwork, setWifiNetwork] = useState('');
-  const [wifiEncryption, setWifiEncryption] = useState('nopass');
-  const [wifiPassword, setWifiPassword] = useState('');
-  const [wifiHidden, setWifiHidden] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const { language } = useUser();
   
-  // Handle WiFi data changes and format the QR content
-  const handleWifiChange = (network: string, encryption: string, password: string, hidden: boolean) => {
-    setWifiNetwork(network);
-    setWifiEncryption(encryption);
-    setWifiPassword(password);
-    setWifiHidden(hidden);
-    
-    // Format the WiFi string according to the standard format: WIFI:T:WPA;S:network_name;P:password;H:true/false;;
-    const wifiString = `WIFI:T:${encryption};S:${network};${encryption !== 'nopass' ? `P:${password};` : ''}H:${hidden ? 'true' : 'false'};;`;
-    handleContentChange(wifiString);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    handleContentChange(e.target.value);
   };
-  
-  // Different input components based on qrType
-  const renderInputByType = () => {
+
+  // Get input label based on QR type
+  const getInputLabel = () => {
     switch (qrType) {
       case 'url':
-        return (
-          <div className="mt-4">
-            <Label htmlFor="url">Website URL</Label>
-            <Input
-              id="url"
-              placeholder="Enter website URL"
-              value={qrValue}
-              onChange={(e) => handleContentChange(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-        );
+        return language === "ar" ? "رابط الموقع" : "Website URL";
       case 'text':
-        return (
-          <div className="mt-4">
-            <Label htmlFor="text">Text</Label>
-            <Input
-              id="text"
-              placeholder="Enter text"
-              value={qrValue}
-              onChange={(e) => handleContentChange(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-        );
+        return language === "ar" ? "نص" : "Text";
       case 'email':
-        return (
-          <div className="mt-4">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              placeholder="Enter email address"
-              value={qrValue}
-              onChange={(e) => handleContentChange(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-        );
-      case 'phone':
-        return (
-          <div className="mt-4">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input
-              id="phone"
-              placeholder="Enter phone number"
-              value={qrValue}
-              onChange={(e) => handleContentChange(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-        );
-      case 'sms':
-        return (
-          <div className="mt-4">
-            <Label htmlFor="sms">SMS Message</Label>
-            <Input
-              id="sms"
-              placeholder="Enter SMS message"
-              value={qrValue}
-              onChange={(e) => handleContentChange(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-        );
+        return language === "ar" ? "البريد الإلكتروني" : "Email";
       case 'wifi':
-        return (
-          <div className="space-y-4 mt-4">
-            <div>
-              <Label htmlFor="wifi-network">WiFi Network Name</Label>
-              <Input
-                id="wifi-network"
-                placeholder="Enter WiFi network name"
-                value={wifiNetwork}
-                onChange={(e) => handleWifiChange(e.target.value, wifiEncryption, wifiPassword, wifiHidden)}
-                className="mt-1"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="wifi-encryption">Security Type</Label>
-              <Select 
-                value={wifiEncryption} 
-                onValueChange={(value) => handleWifiChange(wifiNetwork, value, wifiPassword, wifiHidden)}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select security type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="nopass">No Security</SelectItem>
-                  <SelectItem value="WEP">WEP</SelectItem>
-                  <SelectItem value="WPA">WPA/WPA2-Personal</SelectItem>
-                  <SelectItem value="WPA3">WPA3-Personal</SelectItem>
-                  <SelectItem value="WPA2-EAP">WPA/WPA2-Enterprise</SelectItem>
-                  <SelectItem value="WPA3-EAP">WPA3-Enterprise</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {wifiEncryption !== 'nopass' && (
-              <div>
-                <Label htmlFor="wifi-password">Password</Label>
-                <div className="relative mt-1">
-                  <Input
-                    id="wifi-password"
-                    placeholder="Enter WiFi password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={wifiPassword}
-                    onChange={(e) => handleWifiChange(wifiNetwork, wifiEncryption, e.target.value, wifiHidden)}
-                    className="pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-            )}
-            
-            <div className="flex items-center space-x-2">
-              <Switch 
-                id="wifi-hidden"
-                checked={wifiHidden} 
-                onCheckedChange={(checked) => handleWifiChange(wifiNetwork, wifiEncryption, wifiPassword, checked)}
-              />
-              <Label htmlFor="wifi-hidden">Hidden Network</Label>
-            </div>
-          </div>
-        );
+        return language === "ar" ? "شبكة WiFi" : "WiFi Network";
       case 'contact':
-        return (
-          <div className="mt-4">
-            <Label htmlFor="contact">Contact Information</Label>
-            <Input
-              id="contact"
-              placeholder="Enter contact information"
-              value={qrValue}
-              onChange={(e) => handleContentChange(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-        );
+        return language === "ar" ? "معلومات الاتصال" : "Contact Info";
       case 'location':
-        return (
-          <div className="mt-4">
-            <Label htmlFor="location">Location</Label>
-            <Input
-              id="location"
-              placeholder="Enter location information"
-              value={qrValue}
-              onChange={(e) => handleContentChange(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-        );
+        return language === "ar" ? "الموقع" : "Location";
       case 'event':
-        return (
-          <div className="mt-4">
-            <Label htmlFor="event">Event</Label>
-            <Input
-              id="event"
-              placeholder="Enter event details"
-              value={qrValue}
-              onChange={(e) => handleContentChange(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-        );
+        return language === "ar" ? "تفاصيل الحدث" : "Event Details";
+      case 'image':
+        return language === "ar" ? "رابط الصورة" : "Image URL";
       case 'app':
-        return (
-          <div className="mt-4">
-            <Label htmlFor="app">App</Label>
-            <Input
-              id="app"
-              placeholder="Enter app link"
-              value={qrValue}
-              onChange={(e) => handleContentChange(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-        );
+        return language === "ar" ? "رابط التطبيق" : "App URL";
+      case 'sms':
+        return language === "ar" ? "رقم SMS" : "SMS Number";
       default:
-        return null;
+        return language === "ar" ? "المحتوى" : "Content";
     }
   };
 
-  return <>{renderInputByType()}</>;
+  // Get input placeholder based on QR type
+  const getInputPlaceholder = () => {
+    switch (qrType) {
+      case 'url':
+        return "https://example.com";
+      case 'text':
+        return language === "ar" ? "أدخل النص هنا..." : "Enter text here...";
+      case 'email':
+        return "email@example.com";
+      case 'wifi':
+        return "Network Name";
+      case 'contact':
+        return language === "ar" ? "اسم جهة الاتصال" : "Contact Name";
+      case 'location':
+        return "31.2001° N, 29.9187° E";
+      case 'event':
+        return language === "ar" ? "اسم الحدث" : "Event Name";
+      case 'image':
+        return "https://example.com/image.jpg";
+      case 'app':
+        return "https://play.google.com/store/apps/details?id=app.id";
+      case 'sms':
+        return "+201234567890";
+      default:
+        return language === "ar" ? "أدخل المحتوى هنا" : "Enter content here";
+    }
+  };
+  
+  // Show additional helper text for image type
+  const getHelperText = () => {
+    if (qrType === 'image') {
+      return language === "ar" 
+        ? "أدخل رابط URL مباشر لصورة متاحة على الإنترنت"
+        : "Enter a direct URL to an image available on the internet";
+    }
+    return null;
+  };
+
+  return (
+    <div className="mb-6">
+      <Label className="block text-sm font-medium mb-2">
+        {getInputLabel()}
+      </Label>
+      
+      {qrType === 'text' ? (
+        <Textarea 
+          value={qrValue} 
+          onChange={handleChange}
+          placeholder={getInputPlaceholder()}
+          rows={4}
+          className="w-full"
+        />
+      ) : (
+        <>
+          <Input 
+            type={qrType === 'email' ? 'email' : 'text'}
+            value={qrValue} 
+            onChange={handleChange}
+            placeholder={getInputPlaceholder()}
+            className="w-full"
+          />
+          {getHelperText() && (
+            <p className="text-xs text-gray-500 mt-1">{getHelperText()}</p>
+          )}
+        </>
+      )}
+    </div>
+  );
 };
 
 export default QRContentInput;

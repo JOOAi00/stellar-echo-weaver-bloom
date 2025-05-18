@@ -27,30 +27,25 @@ const preloadAssets = () => {
 preloadAssets();
 
 // Use dynamic import for better initial loading with smaller initial bundle
-const App = React.lazy(() => import('./App.tsx'));
-
-// Loading state while app is loading with better UX
-const LoadingState = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gray-50">
-    <div className="text-center">
-      <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-      <p className="text-gray-600">Loading QRito...</p>
-    </div>
-  </div>
-);
-
-// Make sure we have a valid DOM element to render into
-const rootElement = document.getElementById("root");
-if (!rootElement) throw new Error("Failed to find the root element");
-
-// Render with Suspense for better UX during loading
-// Use smaller timeout for the suspense to reduce perceived loading time
-createRoot(rootElement).render(
-  <React.StrictMode>
-    <UserProvider>
-      <React.Suspense fallback={<LoadingState />}>
+import('./App.tsx').then(module => {
+  const App = module.default;
+  
+  // Make sure we have a valid DOM element to render into
+  const rootElement = document.getElementById("root");
+  if (!rootElement) throw new Error("Failed to find the root element");
+  
+  // Render immediately without Suspense to eliminate loading screen
+  createRoot(rootElement).render(
+    <React.StrictMode>
+      <UserProvider>
         <App />
-      </React.Suspense>
-    </UserProvider>
-  </React.StrictMode>
-);
+      </UserProvider>
+    </React.StrictMode>
+  );
+}).catch(error => {
+  console.error("Error loading app:", error);
+  const rootElement = document.getElementById("root");
+  if (rootElement) {
+    rootElement.innerHTML = '<div class="min-h-screen flex items-center justify-center bg-red-50"><div class="text-center"><p class="text-red-600">Error loading application. Please refresh the page.</p></div></div>';
+  }
+});

@@ -20,6 +20,7 @@ const UserContext = createContext<UserContextType>({
   switchLanguage: () => {},
   logout: async () => {},
   canAddLogo: () => false,
+  canSubscribe: () => true,
 });
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -121,8 +122,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (subscription === 'free' && qrCodesGenerated >= 5) {
         toast({
           variant: "destructive",
-          title: "QR Code Limit Reached",
-          description: "You've reached the limit of 5 QR codes on the free plan. Upgrade to create more.",
+          title: language === 'ar' ? "تم الوصول إلى الحد الأقصى" : "QR Code Limit Reached",
+          description: language === 'ar' 
+            ? "لقد وصلت إلى الحد الأقصى من 5 رموز QR في الخطة المجانية. قم بالترقية لإنشاء المزيد." 
+            : "You've reached the limit of 5 QR codes on the free plan. Upgrade to create more.",
         });
         return false;
       }
@@ -134,8 +137,29 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     return false;
   };
+  
+  // Function to check if user can subscribe to a paid plan
+  const canSubscribe = (plan: string) => {
+    // If user is already on a paid plan, they can't subscribe until it expires
+    if (subscription !== 'free' && subscriptionEndDate && new Date() < subscriptionEndDate) {
+      toast({
+        variant: "warning",
+        title: language === 'ar' ? "اشتراك نشط" : "Active Subscription",
+        description: language === 'ar' 
+          ? `لديك بالفعل اشتراك نشط. يرجى الانتظار حتى انتهاء فترة الاشتراك الحالية في ${subscriptionEndDate.toLocaleDateString()}.` 
+          : `You already have an active subscription. Please wait until your current subscription ends on ${subscriptionEndDate.toLocaleDateString()}.`,
+      });
+      return false;
+    }
+    return true;
+  };
 
   const setUserSubscription = (plan: string) => {
+    // Check if user can subscribe to this plan
+    if (plan !== 'free' && !canSubscribe(plan)) {
+      return;
+    }
+    
     setSubscription(plan);
     if (user) {
       localStorage.setItem(`subscription_${user.id}`, plan);
@@ -179,15 +203,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await supabase.auth.signOut();
       toast({
-        title: "Logged Out",
-        description: "You have been successfully logged out",
+        title: language === 'ar' ? "تم تسجيل الخروج" : "Logged Out",
+        description: language === 'ar' ? "تم تسجيل الخروج بنجاح" : "You have been successfully logged out",
       });
     } catch (error) {
       console.error("Error logging out:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to log out",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل تسجيل الخروج" : "Failed to log out",
       });
     }
   };
@@ -211,7 +235,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         language,
         switchLanguage,
         logout,
-        canAddLogo
+        canAddLogo,
+        canSubscribe
       }}
     >
       {children}
