@@ -11,7 +11,7 @@ import QRContentInput from './qr/QRContentInput';
 
 // Lazy load non-critical components
 const QRStyleCard = lazy(() => import('./qr/QRStyleCard'));
-const QRLogoCard = lazy(() => import('./qr/QRLogoCard'));
+const QRAdvancedCard = lazy(() => import('./qr/QRAdvancedOptions'));
 const QRPreviewCard = lazy(() => import('./qr/QRPreviewCard'));
 const QRActionButtons = lazy(() => import('./qr/QRActionButtons'));
 
@@ -48,7 +48,7 @@ const QRGenerator = ({ type = 'url' }) => {
     }
   }, [urlType]);
 
-  const { isLoggedIn, incrementQRCount, subscription, canAddLogo } = useUser();
+  const { isLoggedIn, incrementQRCount, subscription, canAddLogo, language } = useUser();
   const { toast } = useToast();
 
   // Generate QR code automatically for paid plans, but not for free ones
@@ -63,20 +63,29 @@ const QRGenerator = ({ type = 'url' }) => {
     return () => clearTimeout(timeoutId);
   }, [qrValue, dotColor, backgroundColor, logo, dotSize, cornerRadius, level, subscription]);
 
+  // Add function to open the ad
+  const openAd = () => {
+    window.open("https://www.profitableratecpm.com/i05a32zv3x?key=e8aa2d7d76baecb611b49ce0d5af754f", "_blank");
+  };
+
   const generateQRCode = () => {
     if (qrValue === '') {
       toast({
         variant: "destructive",
-        title: "خطأ",
-        description: "الرجاء إدخال قيمة لإنشاء رمز QR",
+        title: language === "ar" ? "خطأ" : "Error",
+        description: language === "ar" 
+          ? "الرجاء إدخال قيمة لإنشاء رمز QR"
+          : "Please enter a value to create a QR code"
       });
       return false;
     }
 
     if (!isLoggedIn) {
       toast({
-        title: "يرجى تسجيل الدخول",
-        description: "يجب تسجيل الدخول أولاً لإنشاء الباركود",
+        title: language === "ar" ? "يرجى تسجيل الدخول" : "Login Required",
+        description: language === "ar" 
+          ? "يجب تسجيل الدخول أولاً لإنشاء الباركود"
+          : "You must log in first to create the QR code"
       });
       navigate("/login");
       return false;
@@ -98,15 +107,17 @@ const QRGenerator = ({ type = 'url' }) => {
   const handleManualGenerate = () => {
     if (!isLoggedIn) {
       toast({
-        title: "يرجى تسجيل الدخول",
-        description: "يجب تسجيل الدخول أولاً لإنشاء الباركود",
+        title: language === "ar" ? "يرجى تسجيل الدخول" : "Login Required",
+        description: language === "ar" 
+          ? "يجب تسجيل الدخول أولاً لإنشاء الباركود"
+          : "You must log in first to create the QR code"
       });
       navigate("/login");
       return;
     }
     
-    // فتح الإعلان عند الضغط على إنشاء الباركود
-    window.open("https://www.profitableratecpm.com/i05a32zv3x?key=e8aa2d7d76baecb611b49ce0d5af754f", "_blank");
+    // Open the ad when clicking on Generate QR code
+    openAd();
     
     generateQRCode();
   };
@@ -153,7 +164,7 @@ const QRGenerator = ({ type = 'url' }) => {
                 onClick={handleManualGenerate}
                 className="w-full mt-6 bg-purple-600 hover:bg-purple-700 text-white rounded-full py-3 px-4 flex items-center justify-center font-medium"
               >
-                إنشاء رمز QR
+                {language === "ar" ? "إنشاء رمز QR" : "Generate QR Code"}
               </button>
             )}
           </div>
@@ -176,12 +187,18 @@ const QRGenerator = ({ type = 'url' }) => {
             />
           </Suspense>
           
-          {/* Logo options */}
+          {/* Advanced options with logo integration */}
           <Suspense fallback={<LoadingFallback />}>
-            <QRLogoCard 
+            <QRAdvancedCard 
+              cornerRadius={cornerRadius}
+              setCornerRadius={setCornerRadius}
+              level={level}
+              setLevel={setLevel}
+              imageFormat={imageFormat}
+              setImageFormat={setImageFormat}
+              subscription={subscription}
               logo={logo}
               setLogo={setLogo}
-              subscription={subscription}
             />
           </Suspense>
         </div>

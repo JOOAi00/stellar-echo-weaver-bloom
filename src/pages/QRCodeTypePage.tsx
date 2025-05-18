@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -7,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { QrCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
 import { Helmet } from "react-helmet-async";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -37,17 +37,19 @@ const QRCodeTypePage = () => {
   const handleGenerate = () => {
     if (!isLoggedIn) {
       toast({
-        title: "يرجى تسجيل الدخول",
-        description: "يجب تسجيل الدخول أولاً لإنشاء الباركود",
+        title: language === "ar" ? "يرجى تسجيل الدخول" : "Login Required",
+        description: language === "ar" 
+          ? "يجب تسجيل الدخول أولاً لإنشاء الباركود" 
+          : "You must log in first to create the QR code"
       });
       navigate("/login");
       return;
     }
     
-    // فتح الإعلان عند النقر على إنشاء
+    // Open the ad when clicking on Generate
     window.open("https://www.profitableratecpm.com/i05a32zv3x?key=e8aa2d7d76baecb611b49ce0d5af754f", "_blank");
     
-    // التوجيه إلى صفحة إنشاء الباركود
+    // Navigate to the QR code generation page
     navigate(`/?type=${selectedType}`);
   };
 
@@ -66,11 +68,21 @@ const QRCodeTypePage = () => {
   
   // Error correction levels
   const errorLevels = [
-    { value: 'L', label: 'L - Low (7%)' },
-    { value: 'M', label: 'M - Medium (15%)' },
-    { value: 'Q', label: 'Q - Quality (25%)' },
-    { value: 'H', label: 'H - High (30%)' }
+    { value: 'L', label: language === "ar" ? 'L - منخفض (7%)' : 'L - Low (7%)' },
+    { value: 'M', label: language === "ar" ? 'M - متوسط (15%)' : 'M - Medium (15%)' },
+    { value: 'Q', label: language === "ar" ? 'Q - جودة (25%)' : 'Q - Quality (25%)' },
+    { value: 'H', label: language === "ar" ? 'H - عالي (30%)' : 'H - High (30%)' }
   ];
+  
+  // Handle URL change based on QR type
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUrl(e.target.value);
+  };
+  
+  // Handle error correction level change
+  const handleErrorLevelChange = (value: string) => {
+    setErrorLevel(value);
+  };
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-50" dir={language === "ar" ? "rtl" : "ltr"}>
@@ -115,9 +127,11 @@ const QRCodeTypePage = () => {
                      selectedType === 'app' ? language === "ar" ? "رابط التطبيق" : 'App URL' : language === "ar" ? "رقم SMS" : 'SMS Number'}
                   </h3>
                   <Input 
-                    placeholder={selectedType === 'url' ? "https://example.com" : language === "ar" ? "أدخل المحتوى" : "Enter content"} 
+                    placeholder={selectedType === 'url' ? "https://example.com" : 
+                               selectedType === 'image' ? "https://example.com/image.jpg" :
+                               language === "ar" ? "أدخل المحتوى" : "Enter content"} 
                     value={url}
-                    onChange={(e) => setUrl(e.target.value)}
+                    onChange={handleUrlChange}
                     className="w-full" 
                     aria-label={language === "ar" ? "محتوى كود QR" : "QR code content"}
                   />
@@ -195,18 +209,21 @@ const QRCodeTypePage = () => {
                         <h3 className="text-sm font-medium mb-2">
                           {language === "ar" ? "تصحيح الخطأ" : "Error Correction"}
                         </h3>
-                        <RadioGroup
-                          value={errorLevel}
-                          onValueChange={setErrorLevel}
-                          className="grid grid-cols-4 gap-2"
-                        >
+                        <div className="grid grid-cols-4 gap-2">
                           {errorLevels.map((level) => (
-                            <div key={level.value} className="flex items-center space-x-1">
-                              <RadioGroupItem value={level.value} id={`error-level-${level.value}`} />
-                              <Label htmlFor={`error-level-${level.value}`} className="text-sm ml-1">{level.value}</Label>
+                            <div 
+                              key={level.value}
+                              onClick={() => handleErrorLevelChange(level.value)}
+                              className={`flex items-center justify-center p-2 border rounded-md cursor-pointer hover:bg-gray-50 transition-colors ${
+                                errorLevel === level.value ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
+                              }`}
+                            >
+                              <span className={`text-sm ${errorLevel === level.value ? 'font-semibold text-purple-700' : ''}`}>
+                                {level.value}
+                              </span>
                             </div>
                           ))}
-                        </RadioGroup>
+                        </div>
                         <p className="text-xs text-gray-500 mt-1">
                           {language === "ar" ? "المستويات العالية تمكن من تصحيح الخطأ بشكل أفضل ولكنها تنشئ رموزًا أكثر كثافة" : "Higher levels enable better error correction but create denser codes"}
                         </p>
@@ -263,8 +280,8 @@ const QRCodeTypePage = () => {
                         window.open("https://www.profitableratecpm.com/i05a32zv3x?key=e8aa2d7d76baecb611b49ce0d5af754f", "_blank");
                       } else {
                         toast({
-                          title: "يرجى تسجيل الدخول",
-                          description: "يجب تسجيل الدخول أولاً",
+                          title: language === "ar" ? "يرجى تسجيل الدخول" : "Login Required",
+                          description: language === "ar" ? "يجب تسجيل الدخول أولاً" : "You must log in first",
                         });
                         navigate("/login");
                       }
@@ -276,8 +293,8 @@ const QRCodeTypePage = () => {
                         window.open("https://www.profitableratecpm.com/i05a32zv3x?key=e8aa2d7d76baecb611b49ce0d5af754f", "_blank");
                       } else {
                         toast({
-                          title: "يرجى تسجيل الدخول",
-                          description: "يجب تسجيل الدخول أولاً",
+                          title: language === "ar" ? "يرجى تسجيل الدخول" : "Login Required",
+                          description: language === "ar" ? "يجب تسجيل الدخول أولاً" : "You must log in first",
                         });
                         navigate("/login");
                       }
@@ -289,8 +306,8 @@ const QRCodeTypePage = () => {
                         window.open("https://www.profitableratecpm.com/i05a32zv3x?key=e8aa2d7d76baecb611b49ce0d5af754f", "_blank");
                       } else {
                         toast({
-                          title: "يرجى تسجيل الدخول",
-                          description: "يجب تسجيل الدخول أولاً",
+                          title: language === "ar" ? "يرجى تسجيل الدخول" : "Login Required",
+                          description: language === "ar" ? "يجب تسجيل الدخول أولاً" : "You must log in first",
                         });
                         navigate("/login");
                       }

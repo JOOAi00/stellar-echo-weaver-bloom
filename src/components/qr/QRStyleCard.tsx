@@ -7,6 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUser } from '@/context';
 
 interface QRStyleCardProps {
   dotColor: string;
@@ -44,6 +45,7 @@ const QRStyleCard = ({
 }: QRStyleCardProps) => {
   const [activeTab, setActiveTab] = useState('design');
   const isPremium = subscription !== 'free';
+  const { language } = useUser();
   
   // Error correction levels
   const errorLevels = [
@@ -59,23 +61,36 @@ const QRStyleCard = ({
     { value: 'png', label: 'PNG' },
     { value: 'jpeg', label: 'JPEG' }
   ];
+  
+  // Handle error correction level change
+  const handleErrorCorrectionChange = (value: string) => {
+    setLevel(value);
+  };
 
   return (
     <Card className="mb-6 shadow-sm">
       <CardContent className="p-6">
-        <h3 className="text-lg font-bold mb-4">Customize Style</h3>
+        <h3 className="text-lg font-bold mb-4">
+          {language === "ar" ? "تخصيص النمط" : "Customize Style"}
+        </h3>
         
         <Tabs defaultValue="design" className="w-full" onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="design" className="text-center">Design</TabsTrigger>
-            <TabsTrigger value="advanced" className="text-center">Advanced Options</TabsTrigger>
+            <TabsTrigger value="design" className="text-center">
+              {language === "ar" ? "التصميم" : "Design"}
+            </TabsTrigger>
+            <TabsTrigger value="advanced" className="text-center">
+              {language === "ar" ? "خيارات متقدمة" : "Advanced Options"}
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="design">
             <div className="space-y-6">
               <div className="mb-6">
                 <div className="flex justify-between mb-2">
-                  <Label className="text-sm font-medium">QR Code Size</Label>
+                  <Label className="text-sm font-medium">
+                    {language === "ar" ? "حجم كود QR" : "QR Code Size"}
+                  </Label>
                   <span className="text-sm text-gray-500">{dotSize}%</span>
                 </div>
                 <Slider
@@ -90,12 +105,16 @@ const QRStyleCard = ({
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-sm font-medium mb-2">QR Code Color</h3>
+                  <h3 className="text-sm font-medium mb-2">
+                    {language === "ar" ? "لون كود QR" : "QR Code Color"}
+                  </h3>
                   <ColorPicker color={dotColor} onChange={setDotColor} />
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium mb-2">Background Color</h3>
+                  <h3 className="text-sm font-medium mb-2">
+                    {language === "ar" ? "لون الخلفية" : "Background Color"}
+                  </h3>
                   <ColorPicker color={backgroundColor} onChange={setBackgroundColor} />
                 </div>
               </div>
@@ -106,7 +125,9 @@ const QRStyleCard = ({
             <div className="space-y-6">
               <div>
                 <div className="flex justify-between mb-2">
-                  <Label className="text-sm font-medium">Corner Radius</Label>
+                  <Label className="text-sm font-medium">
+                    {language === "ar" ? "استدارة الزوايا" : "Corner Radius"}
+                  </Label>
                   <span className="text-sm text-gray-500">{cornerRadius}%</span>
                 </div>
                 <Slider
@@ -119,31 +140,42 @@ const QRStyleCard = ({
                 />
               </div>
               
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Error Correction</Label>
-                <RadioGroup
-                  value={level}
-                  onValueChange={setLevel}
-                  className="grid grid-cols-4 gap-2"
-                >
+              <div className="mt-6">
+                <Label className="text-sm font-medium mb-2 block">
+                  {language === "ar" ? "تصحيح الخطأ" : "Error Correction"}
+                </Label>
+                <div className="grid grid-cols-4 gap-2">
                   {errorLevels.map((errorLevel) => (
-                    <div key={errorLevel.value} className="flex items-center space-x-1">
-                      <RadioGroupItem value={errorLevel.value} id={`error-${errorLevel.value}`} />
-                      <Label htmlFor={`error-${errorLevel.value}`} className="text-sm">
+                    <div 
+                      key={errorLevel.value}
+                      onClick={() => handleErrorCorrectionChange(errorLevel.value)}
+                      className={`flex items-center justify-center p-2 border rounded-md cursor-pointer hover:bg-gray-50 transition-colors ${
+                        level === errorLevel.value ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
+                      }`}
+                    >
+                      <span className={`text-sm ${level === errorLevel.value ? 'font-semibold text-purple-700' : ''}`}>
                         {errorLevel.value}
-                      </Label>
+                      </span>
                     </div>
                   ))}
-                </RadioGroup>
-                <p className="text-xs text-gray-500 mt-1">Higher levels enable better error correction but create denser codes</p>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === "ar" 
+                    ? "المستويات العالية تمكن من تصحيح الخطأ بشكل أفضل ولكنها تنشئ رموزًا أكثر كثافة" 
+                    : "Higher levels enable better error correction but create denser codes"}
+                </p>
               </div>
               
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Image Format</Label>
+              <div className="mt-6">
+                <Label className="text-sm font-medium mb-2 block">
+                  {language === "ar" ? "تنسيق الصورة" : "Image Format"}
+                </Label>
                 {isPremium ? (
                   <Select value={imageFormat} onValueChange={setImageFormat}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select format" />
+                      <SelectValue placeholder={
+                        language === "ar" ? "اختر التنسيق" : "Select format"
+                      } />
                     </SelectTrigger>
                     <SelectContent>
                       {imageFormats.map((format) => (
@@ -155,7 +187,11 @@ const QRStyleCard = ({
                   </Select>
                 ) : (
                   <div className="bg-gray-50 p-3 rounded border border-gray-200">
-                    <p className="text-sm text-gray-500">Free plan exports as PNG only</p>
+                    <p className="text-sm text-gray-500">
+                      {language === "ar" 
+                        ? "الخطة المجانية تصدر بتنسيق PNG فقط" 
+                        : "Free plan exports as PNG only"}
+                    </p>
                   </div>
                 )}
               </div>

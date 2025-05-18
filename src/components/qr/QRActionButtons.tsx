@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/context';
 import { useNavigate } from 'react-router-dom';
+import { svgToPngDataUrl, shareImage } from '@/utils/imageUtils';
 
 interface QRActionButtonsProps {
   generated: boolean;
@@ -25,34 +26,34 @@ const QRActionButtons = ({
   imageFormat = 'svg'
 }: QRActionButtonsProps) => {
   const { toast } = useToast();
-  const { isLoggedIn } = useUser();
+  const { isLoggedIn, language } = useUser();
   const navigate = useNavigate();
   const shouldShow = (generated || (qrValue && subscription !== 'free')) && qrURL;
   
-  // إضافة وظيفة لفتح الإعلان
+  // Add function to open the ad
   const openAd = () => {
     window.open("https://www.profitableratecpm.com/i05a32zv3x?key=e8aa2d7d76baecb611b49ce0d5af754f", "_blank");
   };
   
-  const downloadQRCode = () => {
+  const downloadQRCode = async () => {
     if (!isLoggedIn) {
       toast({
-        title: "يرجى تسجيل الدخول",
-        description: "يجب تسجيل الدخول أولاً لتنزيل الباركود",
+        title: language === "ar" ? "يرجى تسجيل الدخول" : "Login Required",
+        description: language === "ar" ? "يجب تسجيل الدخول أولاً لتنزيل الباركود" : "You must log in first to download the QR code",
       });
       navigate("/login");
       return;
     }
 
-    // فتح الإعلان
+    // Open the ad
     openAd();
     
     const svg = document.getElementById("qr-code-svg");
-    if (!svg) {
+    if (!svg || !(svg instanceof SVGElement)) {
       toast({
         variant: "destructive",
-        title: "خطأ",
-        description: "فشل في إنشاء الصورة",
+        title: language === "ar" ? "خطأ" : "Error",
+        description: language === "ar" ? "فشل في إنشاء الصورة" : "Failed to create the image",
       });
       return;
     }
@@ -60,163 +61,161 @@ const QRActionButtons = ({
     // For free users, always download as PNG
     const format = subscription === 'free' ? 'png' : imageFormat;
     
-    if (format === 'svg') {
-      // Download as SVG
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgData], { type: "image/svg+xml" });
-      const url = URL.createObjectURL(svgBlob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "qrcode.svg";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } else {
-      // Download as PNG or JPEG
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      const img = new Image();
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgData], { type: "image/svg+xml" });
-      const url = URL.createObjectURL(svgBlob);
-      
-      img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        if (ctx) {
-          ctx.drawImage(img, 0, 0);
-          const downloadUrl = canvas.toDataURL(`image/${format === 'jpeg' ? 'jpeg' : 'png'}`);
-          const link = document.createElement("a");
-          link.href = downloadUrl;
-          link.download = `qrcode.${format}`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }
+    try {
+      if (format === 'svg') {
+        // Download as SVG
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const svgBlob = new Blob([svgData], { type: "image/svg+xml" });
+        const url = URL.createObjectURL(svgBlob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "qrcode.svg";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         URL.revokeObjectURL(url);
-      };
+      } else {
+        // Download as PNG or JPEG using the utility function
+        const dataUrl = await svgToPngDataUrl(svg);
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = `qrcode.${format}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
       
-      img.src = url;
+      toast({
+        title: language === "ar" ? "بدأ التنزيل" : "Download Started",
+        description: language === "ar" 
+          ? `تم تنزيل رمز QR بتنسيق ${format.toUpperCase()}`
+          : `QR code downloaded in ${format.toUpperCase()} format`,
+      });
+    } catch (error) {
+      console.error("Download error:", error);
+      toast({
+        variant: "destructive",
+        title: language === "ar" ? "خطأ" : "Error",
+        description: language === "ar" ? "فشل في تنزيل رمز QR" : "Failed to download QR code",
+      });
     }
-    
-    toast({
-      title: "بدأ التنزيل",
-      description: `تم تنزيل رمز QR بتنسيق ${format.toUpperCase()}`,
-    });
   };
   
-  const copyQRCodeToClipboard = () => {
+  const copyQRCodeToClipboard = async () => {
     if (!isLoggedIn) {
       toast({
-        title: "يرجى تسجيل الدخول",
-        description: "يجب تسجيل الدخول أولاً لنسخ الباركود",
+        title: language === "ar" ? "يرجى تسجيل الدخول" : "Login Required",
+        description: language === "ar" ? "يجب تسجيل الدخول أولاً لنسخ الباركود" : "You must log in first to copy the QR code",
       });
       navigate("/login");
       return;
     }
 
-    // فتح الإعلان
+    // Open the ad
     openAd();
     
     const svg = document.getElementById("qr-code-svg");
-    if (!svg) {
+    if (!svg || !(svg instanceof SVGElement)) {
       toast({
         variant: "destructive",
-        title: "خطأ",
-        description: "فشل في نسخ رمز QR",
-      });
-      return;
-    }
-
-    const svgData = new XMLSerializer().serializeToString(svg);
-    navigator.clipboard.writeText(svgData);
-    
-    toast({
-      title: "تم النسخ",
-      description: "تم نسخ رمز QR إلى الحافظة",
-    });
-  };
-  
-  const shareQRCode = async () => {
-    if (!isLoggedIn) {
-      toast({
-        title: "يرجى تسجيل الدخول",
-        description: "يجب تسجيل الدخول أولاً لمشاركة الباركود",
-      });
-      navigate("/login");
-      return;
-    }
-
-    // فتح الإعلان
-    openAd();
-    
-    const svg = document.getElementById("qr-code-svg");
-    if (!svg) {
-      toast({
-        variant: "destructive",
-        title: "خطأ",
-        description: "فشل في مشاركة رمز QR",
+        title: language === "ar" ? "خطأ" : "Error",
+        description: language === "ar" ? "فشل في نسخ رمز QR" : "Failed to copy QR code",
       });
       return;
     }
 
     try {
-      // For sharing, convert to PNG for better compatibility
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      const img = new Image();
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgData], { type: "image/svg+xml" });
-      const url = URL.createObjectURL(svgBlob);
+      // For copying, we'll convert to PNG for better clipboard compatibility
+      const dataUrl = await svgToPngDataUrl(svg);
       
-      img.onload = async () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        if (ctx) {
-          ctx.drawImage(img, 0, 0);
-          canvas.toBlob(async (blob) => {
-            if (blob) {
-              const file = new File([blob], "qrcode.png", { type: "image/png" });
-              if (navigator.share) {
-                try {
-                  await navigator.share({
-                    files: [file],
-                    title: "QR Code",
-                    text: "شاهد رمز QR الخاص بي!"
-                  });
-                  toast({
-                    title: "تمت المشاركة",
-                    description: "تمت مشاركة رمز QR بنجاح",
-                  });
-                } catch (err: any) {
-                  if (err.name !== 'AbortError') {
-                    toast({
-                      variant: "destructive",
-                      title: "فشل المشاركة",
-                      description: err.message || "فشل في مشاركة رمز QR",
-                    });
-                  }
-                }
-              } else {
-                toast({
-                  variant: "destructive",
-                  title: "خطأ",
-                  description: "واجهة برمجة المشاركة على الويب غير مدعومة في هذا المتصفح",
-                });
-              }
-            }
-          }, 'image/png');
-        }
-        URL.revokeObjectURL(url);
-      };
+      // Create a temporary image element
+      const img = document.createElement('img');
+      img.src = dataUrl;
       
-      img.src = url;
-    } catch (error: any) {
+      // Use the clipboard API if available
+      if (navigator.clipboard && navigator.clipboard.write) {
+        const blob = await fetch(dataUrl).then(r => r.blob());
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]);
+      } else {
+        // Fallback: create a temporary textarea for fallback text copy
+        const textarea = document.createElement('textarea');
+        textarea.value = 'QR Code (image not copied - browser does not support image copying)';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      
+      toast({
+        title: language === "ar" ? "تم النسخ" : "Copied",
+        description: language === "ar" ? "تم نسخ رمز QR إلى الحافظة" : "QR code copied to clipboard",
+      });
+    } catch (error) {
+      console.error("Copy error:", error);
       toast({
         variant: "destructive",
-        title: "خطأ",
-        description: error.message || "فشل في مشاركة رمز QR",
+        title: language === "ar" ? "خطأ" : "Error",
+        description: language === "ar" ? "فشل في نسخ رمز QR" : "Failed to copy QR code",
+      });
+    }
+  };
+  
+  const shareQRCode = async () => {
+    if (!isLoggedIn) {
+      toast({
+        title: language === "ar" ? "يرجى تسجيل الدخول" : "Login Required", 
+        description: language === "ar" ? "يجب تسجيل الدخول أولاً لمشاركة الباركود" : "You must log in first to share the QR code",
+      });
+      navigate("/login");
+      return;
+    }
+
+    // Open the ad
+    openAd();
+    
+    const svg = document.getElementById("qr-code-svg");
+    if (!svg || !(svg instanceof SVGElement)) {
+      toast({
+        variant: "destructive",
+        title: language === "ar" ? "خطأ" : "Error",
+        description: language === "ar" ? "فشل في مشاركة رمز QR" : "Failed to share QR code",
+      });
+      return;
+    }
+
+    try {
+      // Convert SVG to PNG for better sharing compatibility
+      const pngDataUrl = await svgToPngDataUrl(svg);
+      
+      // Use our utility function to share
+      const shared = await shareImage(
+        pngDataUrl,
+        language === "ar" ? "رمز QR" : "QR Code",
+        language === "ar" ? "شاهد رمز QR الخاص بي!" : "Check out my QR code!"
+      );
+      
+      if (shared) {
+        toast({
+          title: language === "ar" ? "تمت المشاركة" : "Shared",
+          description: language === "ar" ? "تمت مشاركة رمز QR بنجاح" : "QR code shared successfully",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: language === "ar" ? "فشل المشاركة" : "Share Failed",
+          description: language === "ar" 
+            ? "فشل في مشاركة رمز QR، حاول بطريقة أخرى" 
+            : "Failed to share QR code, try another method",
+        });
+      }
+    } catch (error: any) {
+      console.error("Share error:", error);
+      toast({
+        variant: "destructive",
+        title: language === "ar" ? "خطأ" : "Error",
+        description: error.message || (language === "ar" ? "فشل في مشاركة رمز QR" : "Failed to share QR code"),
       });
     }
   };
@@ -232,7 +231,7 @@ const QRActionButtons = ({
           className="w-full"
         >
           <Download className="mr-2" size={16} />
-          تنزيل رمز QR
+          {language === "ar" ? "تنزيل رمز QR" : "Download QR Code"}
         </Button>
         <Button 
           onClick={copyQRCodeToClipboard} 
@@ -240,7 +239,7 @@ const QRActionButtons = ({
           className="w-full"
         >
           <Copy className="mr-2" size={16} />
-          نسخ رمز QR
+          {language === "ar" ? "نسخ رمز QR" : "Copy QR Code"}
         </Button>
         <Button 
           onClick={shareQRCode} 
@@ -248,7 +247,7 @@ const QRActionButtons = ({
           className="w-full"
         >
           <Share2 className="mr-2" size={16} />
-          مشاركة
+          {language === "ar" ? "مشاركة" : "Share"}
         </Button>
       </div>
     </div>

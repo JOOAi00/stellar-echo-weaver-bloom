@@ -25,15 +25,18 @@ export const preloadImage = (src: string): Promise<HTMLImageElement> => {
  * @param url The URL to validate
  * @returns A promise that resolves with true if the URL is a valid image, false otherwise
  */
-export const isValidImageUrl = (url: string): Promise<boolean> => {
-  return new Promise((resolve) => {
-    const img = new Image();
-    
-    img.onload = () => resolve(true);
-    img.onerror = () => resolve(false);
-    
-    img.src = url;
-  });
+export const isValidImageUrl = async (url: string): Promise<boolean> => {
+  // If no URL provided, return false immediately
+  if (!url) return false;
+  
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    const contentType = response.headers.get('Content-Type');
+    return contentType ? contentType.startsWith('image/') : false;
+  } catch (error) {
+    console.error("Error validating image URL:", error);
+    return false;
+  }
 };
 
 /**
@@ -76,4 +79,99 @@ export const createPlaceholderImage = (width: number = 200, height: number = 200
   `;
   
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+};
+
+/**
+ * Convert SVG to PNG data URL for better sharing compatibility
+ * @param svgElement The SVG element to convert
+ * @param width Width of the output PNG
+ * @param height Height of the output PNG
+ * @returns A promise that resolves with the PNG data URL
+ */
+export const svgToPngDataUrl = (svgElement: SVGElement, width: number = 300, height: number = 300): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+      
+      // Create a blob from the SVG element
+      const svgData = new XMLSerializer().serializeToString(svgElement);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+      
+      // Create an image from the blob
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, width, height);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load SVG as image'));
+      };
+      img.src = url;
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+/**
+ * Share image using the Web Share API with fallbacks
+ * @param imageDataUrl The image data URL to share
+ * @param title Optional title for the share
+ * @param text Optional text for the share
+ * @returns A promise that resolves when the share is complete
+ */
+export const shareImage = async (imageDataUrl: string, title: string = 'QR Code', text: string = 'Check out this QR code'): Promise<boolean> => {
+  try {
+    // Convert data URL to file
+    const blob = await fetch(imageDataUrl).then(res => res.blob());
+    const file = new File([blob], 'qrcode.png', { type: 'image/png' });
+    
+    // Check if Web Share API is available and supports files
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: title,
+        text: text
+      });
+      return true;
+    } else {
+      // Fallback: open the image in a new tab
+      const newTab = window.open();
+      if (newTab) {
+        newTab.document.write(`
+          <html>
+            <head>
+              <title>${title}</title>
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <style>body { display: flex; justify-content: center; align-items: center; flex-direction: column; height: 100vh; margin: 0; background: #f9f9f9; font-family: sans-serif; }</style>
+            </head>
+            <body>
+              <img src="${imageDataUrl}" style="max-width: 80%; max-height: 80%; border: 1px solid #ccc;">
+              <div style="margin-top: 20px;">
+                <p>${text}</p>
+                <p>Right-click on the image and select "Save image as..." to download.</p>
+              </div>
+            </body>
+          </html>
+        `);
+        newTab.document.close();
+        return true;
+      }
+      return false;
+    }
+  } catch (error) {
+    console.error('Error sharing image:', error);
+    return false;
+  }
 };
