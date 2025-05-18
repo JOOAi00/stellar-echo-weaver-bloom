@@ -2,7 +2,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useUser } from '@/context';
 import { useToast } from '@/hooks/use-toast';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // Import smaller components
 import QRContentCard from './qr/QRContentCard';
@@ -36,6 +36,7 @@ const QRGenerator = ({ type = 'url' }) => {
   const [level, setLevel] = useState('H');
   const [imageFormat, setImageFormat] = useState('svg');
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Get the QR type from URL if available
   const searchParams = new URLSearchParams(location.search);
@@ -66,17 +67,19 @@ const QRGenerator = ({ type = 'url' }) => {
     if (qrValue === '') {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Please enter a value to generate a QR code",
+        title: "خطأ",
+        description: "الرجاء إدخال قيمة لإنشاء رمز QR",
       });
       return false;
     }
 
-    if (!isLoggedIn && !generated) {
+    if (!isLoggedIn) {
       toast({
-        title: "Notice",
-        description: "Sign in to save your QR codes",
+        title: "يرجى تسجيل الدخول",
+        description: "يجب تسجيل الدخول أولاً لإنشاء الباركود",
       });
+      navigate("/login");
+      return false;
     }
 
     // If user is logged in, increment QR count
@@ -93,6 +96,18 @@ const QRGenerator = ({ type = 'url' }) => {
   };
 
   const handleManualGenerate = () => {
+    if (!isLoggedIn) {
+      toast({
+        title: "يرجى تسجيل الدخول",
+        description: "يجب تسجيل الدخول أولاً لإنشاء الباركود",
+      });
+      navigate("/login");
+      return;
+    }
+    
+    // فتح الإعلان عند الضغط على إنشاء الباركود
+    window.open("https://www.profitableratecpm.com/i05a32zv3x?key=e8aa2d7d76baecb611b49ce0d5af754f", "_blank");
+    
     generateQRCode();
   };
 
@@ -138,7 +153,7 @@ const QRGenerator = ({ type = 'url' }) => {
                 onClick={handleManualGenerate}
                 className="w-full mt-6 bg-purple-600 hover:bg-purple-700 text-white rounded-full py-3 px-4 flex items-center justify-center font-medium"
               >
-                Generate QR Code
+                إنشاء رمز QR
               </button>
             )}
           </div>

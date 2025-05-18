@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -14,6 +13,7 @@ import { ColorPicker } from "@/components/ui/color-picker";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 // Import the QRTypeSelector component
 import QRTypeSelector from "@/components/qr/QRTypeSelector";
@@ -28,6 +28,7 @@ const QRCodeTypePage = () => {
   const [dotSize, setDotSize] = useState(70);
   const [cornerRadius, setCornerRadius] = useState(0);
   const [errorLevel, setErrorLevel] = useState("H");
+  const { toast } = useToast();
   
   const handleTypeSelect = (type: string) => {
     setSelectedType(type);
@@ -35,9 +36,18 @@ const QRCodeTypePage = () => {
   
   const handleGenerate = () => {
     if (!isLoggedIn) {
-      navigate("/signup");
+      toast({
+        title: "يرجى تسجيل الدخول",
+        description: "يجب تسجيل الدخول أولاً لإنشاء الباركود",
+      });
+      navigate("/login");
       return;
     }
+    
+    // فتح الإعلان عند النقر على إنشاء
+    window.open("https://www.profitableratecpm.com/i05a32zv3x?key=e8aa2d7d76baecb611b49ce0d5af754f", "_blank");
+    
+    // التوجيه إلى صفحة إنشاء الباركود
     navigate(`/?type=${selectedType}`);
   };
 
@@ -248,13 +258,43 @@ const QRCodeTypePage = () => {
                 
                 {url && (
                   <div className="mt-6 grid grid-cols-3 gap-2">
-                    <Button variant="secondary" className="text-xs">
+                    <Button variant="secondary" className="text-xs" onClick={() => {
+                      if (isLoggedIn) {
+                        window.open("https://www.profitableratecpm.com/i05a32zv3x?key=e8aa2d7d76baecb611b49ce0d5af754f", "_blank");
+                      } else {
+                        toast({
+                          title: "يرجى تسجيل الدخول",
+                          description: "يجب تسجيل الدخول أولاً",
+                        });
+                        navigate("/login");
+                      }
+                    }}>
                       {language === "ar" ? "تنزيل" : "Download"}
                     </Button>
-                    <Button variant="secondary" className="text-xs">
+                    <Button variant="secondary" className="text-xs" onClick={() => {
+                      if (isLoggedIn) {
+                        window.open("https://www.profitableratecpm.com/i05a32zv3x?key=e8aa2d7d76baecb611b49ce0d5af754f", "_blank");
+                      } else {
+                        toast({
+                          title: "يرجى تسجيل الدخول",
+                          description: "يجب تسجيل الدخول أولاً",
+                        });
+                        navigate("/login");
+                      }
+                    }}>
                       {language === "ar" ? "نسخ" : "Copy"}
                     </Button>
-                    <Button variant="secondary" className="text-xs">
+                    <Button variant="secondary" className="text-xs" onClick={() => {
+                      if (isLoggedIn) {
+                        window.open("https://www.profitableratecpm.com/i05a32zv3x?key=e8aa2d7d76baecb611b49ce0d5af754f", "_blank");
+                      } else {
+                        toast({
+                          title: "يرجى تسجيل الدخول",
+                          description: "يجب تسجيل الدخول أولاً",
+                        });
+                        navigate("/login");
+                      }
+                    }}>
                       {language === "ar" ? "مشاركة" : "Share"}
                     </Button>
                   </div>

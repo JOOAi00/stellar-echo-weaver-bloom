@@ -3,6 +3,8 @@ import React from 'react';
 import { Download, Copy, Share2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/context';
+import { useNavigate } from 'react-router-dom';
 
 interface QRActionButtonsProps {
   generated: boolean;
@@ -23,15 +25,34 @@ const QRActionButtons = ({
   imageFormat = 'svg'
 }: QRActionButtonsProps) => {
   const { toast } = useToast();
+  const { isLoggedIn } = useUser();
+  const navigate = useNavigate();
   const shouldShow = (generated || (qrValue && subscription !== 'free')) && qrURL;
   
+  // إضافة وظيفة لفتح الإعلان
+  const openAd = () => {
+    window.open("https://www.profitableratecpm.com/i05a32zv3x?key=e8aa2d7d76baecb611b49ce0d5af754f", "_blank");
+  };
+  
   const downloadQRCode = () => {
+    if (!isLoggedIn) {
+      toast({
+        title: "يرجى تسجيل الدخول",
+        description: "يجب تسجيل الدخول أولاً لتنزيل الباركود",
+      });
+      navigate("/login");
+      return;
+    }
+
+    // فتح الإعلان
+    openAd();
+    
     const svg = document.getElementById("qr-code-svg");
     if (!svg) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to generate image",
+        title: "خطأ",
+        description: "فشل في إنشاء الصورة",
       });
       return;
     }
@@ -80,18 +101,30 @@ const QRActionButtons = ({
     }
     
     toast({
-      title: "Download started",
-      description: `QR code downloaded as ${format.toUpperCase()}`,
+      title: "بدأ التنزيل",
+      description: `تم تنزيل رمز QR بتنسيق ${format.toUpperCase()}`,
     });
   };
   
   const copyQRCodeToClipboard = () => {
+    if (!isLoggedIn) {
+      toast({
+        title: "يرجى تسجيل الدخول",
+        description: "يجب تسجيل الدخول أولاً لنسخ الباركود",
+      });
+      navigate("/login");
+      return;
+    }
+
+    // فتح الإعلان
+    openAd();
+    
     const svg = document.getElementById("qr-code-svg");
     if (!svg) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to copy QR code",
+        title: "خطأ",
+        description: "فشل في نسخ رمز QR",
       });
       return;
     }
@@ -100,18 +133,30 @@ const QRActionButtons = ({
     navigator.clipboard.writeText(svgData);
     
     toast({
-      title: "Copied",
-      description: "QR code copied to clipboard",
+      title: "تم النسخ",
+      description: "تم نسخ رمز QR إلى الحافظة",
     });
   };
   
   const shareQRCode = async () => {
+    if (!isLoggedIn) {
+      toast({
+        title: "يرجى تسجيل الدخول",
+        description: "يجب تسجيل الدخول أولاً لمشاركة الباركود",
+      });
+      navigate("/login");
+      return;
+    }
+
+    // فتح الإعلان
+    openAd();
+    
     const svg = document.getElementById("qr-code-svg");
     if (!svg) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to share QR code",
+        title: "خطأ",
+        description: "فشل في مشاركة رمز QR",
       });
       return;
     }
@@ -138,26 +183,26 @@ const QRActionButtons = ({
                   await navigator.share({
                     files: [file],
                     title: "QR Code",
-                    text: "Check out my QR code!"
+                    text: "شاهد رمز QR الخاص بي!"
                   });
                   toast({
-                    title: "Shared",
-                    description: "QR code shared successfully",
+                    title: "تمت المشاركة",
+                    description: "تمت مشاركة رمز QR بنجاح",
                   });
                 } catch (err: any) {
                   if (err.name !== 'AbortError') {
                     toast({
                       variant: "destructive",
-                      title: "Share failed",
-                      description: err.message || "Failed to share QR code",
+                      title: "فشل المشاركة",
+                      description: err.message || "فشل في مشاركة رمز QR",
                     });
                   }
                 }
               } else {
                 toast({
                   variant: "destructive",
-                  title: "Error",
-                  description: "Web Share API not supported in this browser",
+                  title: "خطأ",
+                  description: "واجهة برمجة المشاركة على الويب غير مدعومة في هذا المتصفح",
                 });
               }
             }
@@ -170,8 +215,8 @@ const QRActionButtons = ({
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to share QR code",
+        title: "خطأ",
+        description: error.message || "فشل في مشاركة رمز QR",
       });
     }
   };
@@ -187,7 +232,7 @@ const QRActionButtons = ({
           className="w-full"
         >
           <Download className="mr-2" size={16} />
-          Download QR Code
+          تنزيل رمز QR
         </Button>
         <Button 
           onClick={copyQRCodeToClipboard} 
@@ -195,7 +240,7 @@ const QRActionButtons = ({
           className="w-full"
         >
           <Copy className="mr-2" size={16} />
-          Copy QR Code
+          نسخ رمز QR
         </Button>
         <Button 
           onClick={shareQRCode} 
@@ -203,7 +248,7 @@ const QRActionButtons = ({
           className="w-full"
         >
           <Share2 className="mr-2" size={16} />
-          Share
+          مشاركة
         </Button>
       </div>
     </div>
