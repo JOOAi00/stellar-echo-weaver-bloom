@@ -10,17 +10,17 @@ import { QrCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ColorPicker } from "@/components/ui/color-picker";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { PlusCircle, X, Upload } from 'lucide-react';
 
 // Import the QRTypeSelector component
 import QRTypeSelector from "@/components/qr/QRTypeSelector";
 
 const QRCodeTypePage = () => {
   const navigate = useNavigate();
-  const { isLoggedIn, language } = useUser();
+  const { isLoggedIn, language, canAddLogo } = useUser();
   const [selectedType, setSelectedType] = useState("url");
   const [url, setUrl] = useState("");
   const [dotColor, setDotColor] = useState("#8A3FFC");
@@ -29,6 +29,8 @@ const QRCodeTypePage = () => {
   const [cornerRadius, setCornerRadius] = useState(0);
   const [errorLevel, setErrorLevel] = useState("H");
   const { toast } = useToast();
+  const [logo, setLogo] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   
   const handleTypeSelect = (type: string) => {
     setSelectedType(type);
@@ -82,6 +84,56 @@ const QRCodeTypePage = () => {
   // Handle error correction level change
   const handleErrorLevelChange = (value: string) => {
     setErrorLevel(value);
+  };
+  
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // Check file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        toast({
+          variant: "destructive",
+          title: language === "ar" ? "الملف كبير جدًا" : "File too large",
+          description: language === "ar" 
+            ? "يرجى تحميل صورة أصغر من 2 ميجابايت"
+            : "Please upload an image smaller than 2MB"
+        });
+        return;
+      }
+      
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          variant: "destructive",
+          title: language === "ar" ? "نوع ملف غير صالح" : "Invalid file type",
+          description: language === "ar"
+            ? "يرجى تحميل ملف صورة"
+            : "Please upload an image file"
+        });
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target) {
+          setLogo(event.target.result as string);
+          toast({
+            title: language === "ar" ? "تم تحميل الشعار" : "Logo uploaded",
+            description: language === "ar"
+              ? "تمت إضافة شعارك إلى رمز QR"
+              : "Your logo has been added to the QR code"
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleClickUpload = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
   
   return (
@@ -211,8 +263,9 @@ const QRCodeTypePage = () => {
                         </h3>
                         <div className="grid grid-cols-4 gap-2">
                           {errorLevels.map((level) => (
-                            <div 
+                            <button 
                               key={level.value}
+                              type="button"
                               onClick={() => handleErrorLevelChange(level.value)}
                               className={`flex items-center justify-center p-2 border rounded-md cursor-pointer hover:bg-gray-50 transition-colors ${
                                 errorLevel === level.value ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
@@ -221,12 +274,56 @@ const QRCodeTypePage = () => {
                               <span className={`text-sm ${errorLevel === level.value ? 'font-semibold text-purple-700' : ''}`}>
                                 {level.value}
                               </span>
-                            </div>
+                            </button>
                           ))}
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
                           {language === "ar" ? "المستويات العالية تمكن من تصحيح الخطأ بشكل أفضل ولكنها تنشئ رموزًا أكثر كثافة" : "Higher levels enable better error correction but create denser codes"}
                         </p>
+                      </div>
+
+                      <div className="mt-6">
+                        <h3 className="text-sm font-medium mb-2">
+                          {language === "ar" ? "إضافة شعار (اختياري)" : "Add Logo (Optional)"}
+                        </h3>
+                        <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md p-8 bg-gray-50">
+                          {logo ? (
+                            <div className="relative">
+                              <img src={logo} alt="Logo" className="h-24 w-auto" />
+                              <button 
+                                onClick={() => setLogo(null)} 
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
+                                type="button"
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="text-center">
+                              <Upload size={36} className="mx-auto text-gray-400" />
+                              <p className="text-gray-500 mt-2">
+                                {language === "ar" ? "انقر لتحميل شعارك" : "Click to upload your logo"}
+                              </p>
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden" 
+                                id="logo-upload" 
+                                ref={fileInputRef}
+                                onChange={handleLogoUpload} 
+                              />
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="mt-2"
+                                onClick={handleClickUpload}
+                                type="button"
+                              >
+                                {language === "ar" ? "اختر ملف" : "Choose File"}
+                              </Button>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       <div className="mt-6">
@@ -249,7 +346,7 @@ const QRCodeTypePage = () => {
                   className="w-full bg-purple-600 hover:bg-purple-700 rounded-full py-6 mt-4"
                 >
                   <QrCode className="mr-2 h-5 w-5" /> 
-                  {language === "ar" ? "إنشاء كود QR" : "Generate QR Code"}
+                  Generate QR Code
                 </Button>
               </div>
             </div>
@@ -286,7 +383,7 @@ const QRCodeTypePage = () => {
                         navigate("/login");
                       }
                     }}>
-                      {language === "ar" ? "تنزيل" : "Download"}
+                      Download
                     </Button>
                     <Button variant="secondary" className="text-xs" onClick={() => {
                       if (isLoggedIn) {
@@ -299,7 +396,7 @@ const QRCodeTypePage = () => {
                         navigate("/login");
                       }
                     }}>
-                      {language === "ar" ? "نسخ" : "Copy"}
+                      Copy
                     </Button>
                     <Button variant="secondary" className="text-xs" onClick={() => {
                       if (isLoggedIn) {
@@ -312,7 +409,7 @@ const QRCodeTypePage = () => {
                         navigate("/login");
                       }
                     }}>
-                      {language === "ar" ? "مشاركة" : "Share"}
+                      Share
                     </Button>
                   </div>
                 )}

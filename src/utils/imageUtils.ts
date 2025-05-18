@@ -137,16 +137,54 @@ export const shareImage = async (imageDataUrl: string, title: string = 'QR Code'
     const blob = await fetch(imageDataUrl).then(res => res.blob());
     const file = new File([blob], 'qrcode.png', { type: 'image/png' });
     
-    // Check if Web Share API is available and supports files
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        files: [file],
-        title: title,
-        text: text
-      });
-      return true;
+    // Check if Web Share API is available with navigator.canShare
+    if (navigator.share) {
+      try {
+        // For browsers that support share but may not support file sharing
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: title,
+            text: text
+          });
+        } else {
+          // Fallback for browsers that support share but not file sharing
+          await navigator.share({
+            title: title,
+            text: text + ' (Image cannot be shared directly)',
+            url: window.location.href
+          });
+        }
+        return true;
+      } catch (shareError) {
+        // If there was an error with sharing, fall back to opening in new tab
+        console.warn('Error with Web Share API:', shareError);
+        
+        // Fallback to download approach
+        const newTab = window.open();
+        if (newTab) {
+          newTab.document.write(`
+            <html>
+              <head>
+                <title>${title}</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>body { display: flex; justify-content: center; align-items: center; flex-direction: column; height: 100vh; margin: 0; background: #f9f9f9; font-family: sans-serif; }</style>
+              </head>
+              <body>
+                <img src="${imageDataUrl}" style="max-width: 80%; max-height: 80%; border: 1px solid #ccc;">
+                <div style="margin-top: 20px;">
+                  <p>${text}</p>
+                  <p>Right-click on the image and select "Save image as..." to download.</p>
+                </div>
+              </body>
+            </html>
+          `);
+          newTab.document.close();
+          return true;
+        }
+      }
     } else {
-      // Fallback: open the image in a new tab
+      // Fallback for browsers without Web Share API
       const newTab = window.open();
       if (newTab) {
         newTab.document.write(`
@@ -168,8 +206,8 @@ export const shareImage = async (imageDataUrl: string, title: string = 'QR Code'
         newTab.document.close();
         return true;
       }
-      return false;
     }
+    return false;
   } catch (error) {
     console.error('Error sharing image:', error);
     return false;

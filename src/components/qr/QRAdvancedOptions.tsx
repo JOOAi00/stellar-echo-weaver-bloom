@@ -150,17 +150,18 @@ const QRAdvancedOptions = ({
                 </Label>
                 <div className="grid grid-cols-4 gap-2">
                   {errorLevels.map((errorLevel) => (
-                    <div 
+                    <button 
                       key={errorLevel.value}
                       onClick={() => handleErrorCorrectionChange(errorLevel.value)}
                       className={`flex items-center justify-center p-2 border rounded-md cursor-pointer hover:bg-gray-50 transition-colors ${
                         level === errorLevel.value ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
                       }`}
+                      type="button"
                     >
                       <span className={`text-sm ${level === errorLevel.value ? 'font-semibold text-purple-700' : ''}`}>
                         {errorLevel.value}
                       </span>
-                    </div>
+                    </button>
                   ))}
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
@@ -183,6 +184,7 @@ const QRAdvancedOptions = ({
                         <button 
                           onClick={() => setLogo(null)} 
                           className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
+                          type="button"
                         >
                           <X size={16} />
                         </button>
@@ -206,6 +208,7 @@ const QRAdvancedOptions = ({
                           size="sm" 
                           className="mt-2"
                           onClick={handleClickUpload}
+                          type="button"
                         >
                           {language === "ar" ? "اختر ملف" : "Choose File"}
                         </Button>

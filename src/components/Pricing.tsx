@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
@@ -41,7 +42,7 @@ const Pricing = () => {
     setUserSubscription(plan);
     toast({
       title: t(`${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan Selected`, `تم اختيار خطة ${plan === "pro" ? "الاحترافية" : "الأعمال"}`),
-      description: t("In a real app, this would redirect to payment.", "في تطبيق حقيقي، سيتم توجيهك إلى الدفع."),
+      description: t(`You're now on the ${plan} free trial for 30 days.`, `أنت الآن على فترة تجريبية مجانية لمدة 30 يومًا من خطة ${plan === "pro" ? "الاحترافية" : "الأعمال"}.`),
     });
     navigate("/");
   };
@@ -71,6 +72,7 @@ const Pricing = () => {
       price: t("$9.99", "٩٫٩٩ دولار"),
       period: t("monthly", "شهريًا"),
       description: t("For professional needs", "للاحتياجات المهنية"),
+      trialText: t("30-day free trial", "تجربة مجانية لمدة 30 يوم"),
       features: [
         t("All Free plan features", "جميع ميزات الخطة المجانية"),
         t("Unlimited QR codes", "رموز QR غير محدودة"),
@@ -82,7 +84,7 @@ const Pricing = () => {
         t("Dynamic QR codes", "رموز QR ديناميكية"),
         t("No ads", "بدون إعلانات")
       ],
-      buttonText: t("Upgrade to Pro", "الترقية إلى الاحترافي"),
+      buttonText: t("Start Free Trial", "ابدأ الفترة التجريبية"),
       buttonVariant: "default",
       popular: true,
       planId: "pro"
@@ -93,6 +95,7 @@ const Pricing = () => {
       price: t("$29.99", "٢٩٫٩٩ دولار"),
       period: t("monthly", "شهريًا"),
       description: t("For companies and enterprises", "للشركات والمؤسسات"),
+      trialText: t("30-day free trial", "تجربة مجانية لمدة 30 يوم"),
       features: [
         t("All Pro features", "جميع ميزات الخطة الاحترافية"),
         t("Multiple team members", "أعضاء فريق متعددين"),
@@ -103,7 +106,7 @@ const Pricing = () => {
         t("Priority support", "دعم ذو أولوية"),
         t("No ads", "بدون إعلانات")
       ],
-      buttonText: t("Contact Sales", "اتصل بالمبيعات"),
+      buttonText: t("Start Free Trial", "ابدأ الفترة التجريبية"),
       buttonVariant: "outline",
       planId: "business"
     }
@@ -139,10 +142,17 @@ const Pricing = () => {
             <div className="p-6">
               <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
               <p className="text-sm text-gray-600 mb-3">{plan.tagline}</p>
-              <div className="mb-4">
+              <div className="mb-2">
                 <span className="text-3xl font-bold">{plan.price}</span>
                 <span className="text-gray-500 ml-1">/ {plan.period}</span>
               </div>
+              
+              {plan.trialText && (
+                <div className="mb-4 bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs inline-block">
+                  {plan.trialText}
+                </div>
+              )}
+              
               <p className="text-gray-600 mb-6 text-sm">{plan.description}</p>
               <Button 
                 className={`w-full ${

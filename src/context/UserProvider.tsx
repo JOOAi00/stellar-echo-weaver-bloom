@@ -32,6 +32,28 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [language, setLanguage] = useState('en'); // Default to English
   const { toast } = useToast();
 
+  // Check if subscription has expired and revert to free plan
+  const checkSubscriptionExpiry = () => {
+    if (subscriptionEndDate && new Date() > subscriptionEndDate && subscription !== 'free') {
+      // Subscription has expired, revert to free plan
+      setSubscription('free');
+      setSubscriptionEndDate(null);
+      
+      if (user) {
+        localStorage.setItem(`subscription_${user.id}`, 'free');
+        localStorage.removeItem(`subscriptionEndDate_${user.id}`);
+        
+        toast({
+          title: language === 'ar' ? "انتهى الاشتراك" : "Subscription Ended",
+          description: language === 'ar' 
+            ? "لقد انتهى اشتراكك المدفوع وتم تحويلك إلى الخطة المجانية" 
+            : "Your paid subscription has ended and you've been moved to the free plan",
+          variant: "default",
+        });
+      }
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -75,9 +97,23 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLanguage(loadLanguage(session.user));
       }
     });
+    
+    // Set up interval to check subscription expiry
+    const intervalId = setInterval(checkSubscriptionExpiry, 60000); // Check every minute
+    
+    // Check immediately on mount too
+    checkSubscriptionExpiry();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      clearInterval(intervalId);
+    };
   }, []);
+
+  // Also check subscription expiry whenever subscriptionEndDate changes
+  useEffect(() => {
+    checkSubscriptionExpiry();
+  }, [subscriptionEndDate]);
 
   const incrementQRCount = () => {
     if (user) {
@@ -104,7 +140,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user) {
       localStorage.setItem(`subscription_${user.id}`, plan);
       
-      // Set subscription end date (30 days from now)
+      // Set subscription end date (30 days from now for trial period)
       if (plan !== 'free') {
         const endDate = new Date();
         endDate.setDate(endDate.getDate() + 30);
@@ -113,8 +149,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem(`subscriptionEndDate_${user.id}`, endDate.toISOString());
         
         toast({
-          title: "Subscription Updated",
-          description: `You are now on the ${plan} plan until ${endDate.toLocaleDateString()}.`,
+          title: language === 'ar' ? "تم تحديث الاشتراك" : "Subscription Updated",
+          description: language === 'ar' 
+            ? `أنت الآن على خطة ${plan} المجانية حتى ${endDate.toLocaleDateString()}` 
+            : `You are now on the ${plan} free trial until ${endDate.toLocaleDateString()}.`,
         });
       } else {
         setSubscriptionEndDate(null);
