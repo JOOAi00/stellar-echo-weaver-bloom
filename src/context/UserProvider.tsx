@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -143,7 +142,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // If user is already on a paid plan, they can't subscribe until it expires
     if (subscription !== 'free' && subscriptionEndDate && new Date() < subscriptionEndDate) {
       toast({
-        variant: "warning",
+        variant: "default",
         title: language === 'ar' ? "اشتراك نشط" : "Active Subscription",
         description: language === 'ar' 
           ? `لديك بالفعل اشتراك نشط. يرجى الانتظار حتى انتهاء فترة الاشتراك الحالية في ${subscriptionEndDate.toLocaleDateString()}.` 
