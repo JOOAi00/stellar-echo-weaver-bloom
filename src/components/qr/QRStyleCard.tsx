@@ -5,7 +5,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUser } from '@/context';
 
@@ -47,25 +46,12 @@ const QRStyleCard = ({
   const isPremium = subscription !== 'free';
   const { language } = useUser();
   
-  // Error correction levels
-  const errorLevels = [
-    { value: 'L', label: 'L - Low (7%)' },
-    { value: 'M', label: 'M - Medium (15%)' },
-    { value: 'Q', label: 'Q - Quality (25%)' },
-    { value: 'H', label: 'H - High (30%)' }
-  ];
-
   // Image formats
   const imageFormats = [
     { value: 'svg', label: 'SVG' },
     { value: 'png', label: 'PNG' },
     { value: 'jpeg', label: 'JPEG' }
   ];
-  
-  // Handle error correction level change
-  const handleErrorCorrectionChange = (value: string) => {
-    setLevel(value);
-  };
 
   return (
     <Card className="mb-6 shadow-sm">
@@ -138,32 +124,6 @@ const QRStyleCard = ({
                   onValueChange={(value) => setCornerRadius(value[0])}
                   className="w-full"
                 />
-              </div>
-              
-              <div className="mt-6">
-                <Label className="text-sm font-medium mb-2 block">
-                  {language === "ar" ? "تصحيح الخطأ" : "Error Correction"}
-                </Label>
-                <div className="grid grid-cols-4 gap-2">
-                  {errorLevels.map((errorLevel) => (
-                    <div 
-                      key={errorLevel.value}
-                      onClick={() => handleErrorCorrectionChange(errorLevel.value)}
-                      className={`flex items-center justify-center p-2 border rounded-md cursor-pointer hover:bg-gray-50 transition-colors ${
-                        level === errorLevel.value ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
-                      }`}
-                    >
-                      <span className={`text-sm ${level === errorLevel.value ? 'font-semibold text-purple-700' : ''}`}>
-                        {errorLevel.value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === "ar" 
-                    ? "المستويات العالية تمكن من تصحيح الخطأ بشكل أفضل ولكنها تنشئ رموزًا أكثر كثافة" 
-                    : "Higher levels enable better error correction but create denser codes"}
-                </p>
               </div>
               
               <div className="mt-6">

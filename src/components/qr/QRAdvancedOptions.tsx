@@ -38,32 +38,11 @@ const QRAdvancedOptions = ({
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Error correction levels
-  const errorLevels = [
-    { value: 'L', label: language === "ar" ? 'L - منخفض (7%)' : 'L - Low (7%)' },
-    { value: 'M', label: language === "ar" ? 'M - متوسط (15%)' : 'M - Medium (15%)' },
-    { value: 'Q', label: language === "ar" ? 'Q - جودة (25%)' : 'Q - Quality (25%)' },
-    { value: 'H', label: language === "ar" ? 'H - عالي (30%)' : 'H - High (30%)' }
-  ];
-
   const imageFormats = [
     { value: 'svg', label: 'SVG' },
     { value: 'png', label: 'PNG' },
     { value: 'jpeg', label: 'JPEG' }
   ];
-  
-  // Handle error correction level change
-  const handleErrorCorrectionChange = (value: string) => {
-    setLevel(value);
-    
-    // Show success toast when error correction level is changed
-    toast({
-      title: language === "ar" ? "تم تحديث مستوى تصحيح الخطأ" : "Error Correction Updated",
-      description: language === "ar" 
-        ? `تم تعيين مستوى تصحيح الخطأ إلى ${value}` 
-        : `Error correction level set to ${value}`,
-    });
-  };
   
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -149,33 +128,6 @@ const QRAdvancedOptions = ({
                   onValueChange={(value) => setCornerRadius(value[0])}
                   className="w-full"
                 />
-              </div>
-              
-              <div>
-                <Label className="text-sm font-medium mb-2 block">
-                  {language === "ar" ? "تصحيح الخطأ" : "Error Correction"}
-                </Label>
-                <div className="grid grid-cols-4 gap-2">
-                  {errorLevels.map((errorLevel) => (
-                    <button 
-                      key={errorLevel.value}
-                      onClick={() => handleErrorCorrectionChange(errorLevel.value)}
-                      className={`flex items-center justify-center p-2 border rounded-md cursor-pointer hover:bg-gray-50 transition-colors ${
-                        level === errorLevel.value ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
-                      }`}
-                      type="button"
-                    >
-                      <span className={`text-sm ${level === errorLevel.value ? 'font-semibold text-purple-700' : ''}`}>
-                        {errorLevel.value}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === "ar" 
-                    ? "المستويات العالية تمكن من تصحيح الخطأ بشكل أفضل ولكنها تنشئ رموزًا أكثر كثافة" 
-                    : "Higher levels enable better error correction but create denser codes"}
-                </p>
               </div>
               
               <div className="mt-6">

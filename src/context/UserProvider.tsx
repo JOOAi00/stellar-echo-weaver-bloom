@@ -121,8 +121,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (subscription === 'free' && qrCodesGenerated >= 5) {
         toast({
           variant: "destructive",
-          title: language === 'ar' ? "تم الوصول إلى الحد الأقصى" : "QR Code Limit Reached",
-          description: language === 'ar' 
+          title: language === "ar" ? "تم الوصول إلى الحد الأقصى" : "QR Code Limit Reached",
+          description: language === "ar" 
             ? "لقد وصلت إلى الحد الأقصى من 5 رموز QR في الخطة المجانية. قم بالترقية لإنشاء المزيد." 
             : "You've reached the limit of 5 QR codes on the free plan. Upgrade to create more.",
         });
@@ -139,8 +139,20 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   // Function to check if user can subscribe to a paid plan
   const canSubscribe = (plan: string) => {
-    // If user is already on a paid plan, they can't subscribe until it expires
-    if (subscription !== 'free' && subscriptionEndDate && new Date() < subscriptionEndDate) {
+    // If user wants to downgrade to free plan but has an active paid subscription, prevent it
+    if (plan === 'free' && subscription !== 'free' && subscriptionEndDate && new Date() < subscriptionEndDate) {
+      toast({
+        variant: "destructive",
+        title: language === "ar" ? "لا يمكن الترقية التنازلية" : "Cannot Downgrade",
+        description: language === "ar" 
+          ? `لا يمكنك التحويل إلى الخطة المجانية أثناء وجود اشتراك نشط. يرجى الانتظار حتى انتهاء اشتراكك الحالي في ${subscriptionEndDate.toLocaleDateString()}.` 
+          : `You cannot switch to the free plan while having an active subscription. Please wait until your current subscription ends on ${subscriptionEndDate.toLocaleDateString()}.`,
+      });
+      return false;
+    }
+    
+    // If user is already on a paid plan and wants to switch to another paid plan, they can't until current one expires
+    if (plan !== 'free' && subscription !== 'free' && subscriptionEndDate && new Date() < subscriptionEndDate) {
       toast({
         variant: "default",
         title: language === 'ar' ? "اشتراك نشط" : "Active Subscription",
@@ -150,12 +162,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       return false;
     }
+    
     return true;
   };
 
   const setUserSubscription = (plan: string) => {
     // Check if user can subscribe to this plan
-    if (plan !== 'free' && !canSubscribe(plan)) {
+    if (!canSubscribe(plan)) {
       return;
     }
     
@@ -172,8 +185,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem(`subscriptionEndDate_${user.id}`, endDate.toISOString());
         
         toast({
-          title: language === 'ar' ? "تم تحديث الاشتراك" : "Subscription Updated",
-          description: language === 'ar' 
+          title: language === "ar" ? "تم تحديث الاشتراك" : "Subscription Updated",
+          description: language === "ar" 
             ? `أنت الآن على خطة ${plan} المجانية حتى ${endDate.toLocaleDateString()}` 
             : `You are now on the ${plan} free trial until ${endDate.toLocaleDateString()}.`,
         });

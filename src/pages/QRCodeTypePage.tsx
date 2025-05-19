@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -68,28 +67,9 @@ const QRCodeTypePage = () => {
     "inLanguage": language === "ar" ? "ar" : "en"
   };
   
-  // Error correction levels
-  const errorLevels = [
-    { value: 'L', label: language === "ar" ? 'L - منخفض (7%)' : 'L - Low (7%)' },
-    { value: 'M', label: language === "ar" ? 'M - متوسط (15%)' : 'M - Medium (15%)' },
-    { value: 'Q', label: language === "ar" ? 'Q - جودة (25%)' : 'Q - Quality (25%)' },
-    { value: 'H', label: language === "ar" ? 'H - عالي (30%)' : 'H - High (30%)' }
-  ];
-  
   // Handle URL change based on QR type
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUrl(e.target.value);
-  };
-  
-  // Handle error correction level change
-  const handleErrorLevelChange = (value: string) => {
-    setErrorLevel(value);
-    toast({
-      title: language === "ar" ? "تم تحديث مستوى تصحيح الخطأ" : "Error Correction Updated",
-      description: language === "ar" 
-        ? `تم تعيين مستوى تصحيح الخطأ إلى ${value}` 
-        : `Error correction level set to ${value}`,
-    });
   };
   
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -269,31 +249,6 @@ const QRCodeTypePage = () => {
                           className="w-full"
                           aria-label={language === "ar" ? "استدارة الزوايا" : "Corner radius"}
                         />
-                      </div>
-
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">
-                          {language === "ar" ? "تصحيح الخطأ" : "Error Correction"}
-                        </h3>
-                        <div className="grid grid-cols-4 gap-2">
-                          {errorLevels.map((level) => (
-                            <button 
-                              key={level.value}
-                              type="button"
-                              onClick={() => handleErrorLevelChange(level.value)}
-                              className={`flex items-center justify-center p-2 border rounded-md cursor-pointer hover:bg-gray-50 transition-colors ${
-                                errorLevel === level.value ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
-                              }`}
-                            >
-                              <span className={`text-sm ${errorLevel === level.value ? 'font-semibold text-purple-700' : ''}`}>
-                                {level.value}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {language === "ar" ? "المستويات العالية تمكن من تصحيح الخطأ بشكل أفضل ولكنها تنشئ رموزًا أكثر كثافة" : "Higher levels enable better error correction but create denser codes"}
-                        </p>
                       </div>
 
                       <div className="mt-6">
