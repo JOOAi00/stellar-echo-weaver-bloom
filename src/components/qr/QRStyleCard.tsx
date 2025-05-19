@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { useUser } from '@/context';
+import QRAdvancedOptions from './QRAdvancedOptions';
 
 interface QRStyleCardProps {
   dotColor: string;
@@ -29,6 +30,12 @@ const QRStyleCard = ({
   backgroundColor,
   setDotColor,
   setBackgroundColor,
+  cornerRadius,
+  setCornerRadius,
+  level,
+  setLevel,
+  imageFormat,
+  setImageFormat,
   subscription
 }: QRStyleCardProps) => {
   const { language } = useUser();
@@ -40,23 +47,47 @@ const QRStyleCard = ({
           {language === "ar" ? "تخصيص النمط" : "Customize Style"}
         </h3>
         
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-sm font-medium mb-2">
-                {language === "ar" ? "لون كود QR" : "QR Code Color"}
-              </h3>
-              <ColorPicker color={dotColor} onChange={setDotColor} />
+        <Tabs defaultValue="design" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="design" className="text-center">
+              {language === "ar" ? "التصميم" : "Design"}
+            </TabsTrigger>
+            <TabsTrigger value="advanced" className="text-center">
+              {language === "ar" ? "خيارات متقدمة" : "Advanced Options"}
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="design">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-sm font-medium mb-2">
+                    {language === "ar" ? "لون كود QR" : "QR Code Color"}
+                  </h3>
+                  <ColorPicker color={dotColor} onChange={setDotColor} />
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium mb-2">
+                    {language === "ar" ? "لون الخلفية" : "Background Color"}
+                  </h3>
+                  <ColorPicker color={backgroundColor} onChange={setBackgroundColor} />
+                </div>
+              </div>
             </div>
-            
-            <div>
-              <h3 className="text-sm font-medium mb-2">
-                {language === "ar" ? "لون الخلفية" : "Background Color"}
-              </h3>
-              <ColorPicker color={backgroundColor} onChange={setBackgroundColor} />
-            </div>
-          </div>
-        </div>
+          </TabsContent>
+          
+          <TabsContent value="advanced">
+            <QRAdvancedOptions
+              cornerRadius={cornerRadius}
+              setCornerRadius={setCornerRadius}
+              level={level}
+              setLevel={setLevel}
+              imageFormat={imageFormat}
+              setImageFormat={setImageFormat}
+            />
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
