@@ -11,7 +11,7 @@ import QRContentInput from './qr/QRContentInput';
 
 // Lazy load non-critical components
 const QRStyleCard = lazy(() => import('./qr/QRStyleCard'));
-const QRAdvancedCard = lazy(() => import('./qr/QRAdvancedOptions'));
+const QRLogoCard = lazy(() => import('./qr/QRLogoCard'));
 const QRPreviewCard = lazy(() => import('./qr/QRPreviewCard'));
 const QRActionButtons = lazy(() => import('./qr/QRActionButtons'));
 
@@ -187,18 +187,12 @@ const QRGenerator = ({ type = 'url' }) => {
             />
           </Suspense>
           
-          {/* Advanced options with logo integration */}
+          {/* Add Logo Card */}
           <Suspense fallback={<LoadingFallback />}>
-            <QRAdvancedCard 
-              cornerRadius={cornerRadius}
-              setCornerRadius={setCornerRadius}
-              level={level}
-              setLevel={setLevel}
-              imageFormat={imageFormat}
-              setImageFormat={setImageFormat}
-              subscription={subscription}
+            <QRLogoCard 
               logo={logo}
               setLogo={setLogo}
+              subscription={subscription}
             />
           </Suspense>
         </div>
