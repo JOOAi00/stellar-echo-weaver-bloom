@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/context";
 
 const Pricing = () => {
-  const { isLoggedIn, subscription, setUserSubscription, language } = useUser();
+  const { isLoggedIn, subscription, subscriptionEndDate, setUserSubscription, canSubscribe, language } = useUser();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -29,6 +29,11 @@ const Pricing = () => {
     
     // For free plan
     if (plan === "free") {
+      // Check if can downgrade to free plan (using the canSubscribe function)
+      if (!canSubscribe(plan)) {
+        return;
+      }
+      
       setUserSubscription('free');
       toast({
         title: t("Free Plan Selected", "تم اختيار الخطة المجانية"),
@@ -38,7 +43,12 @@ const Pricing = () => {
       return;
     }
     
-    // For paid plans
+    // For paid plans - check if already on another paid plan
+    if (!canSubscribe(plan)) {
+      return;
+    }
+    
+    // If eligible to subscribe, proceed
     setUserSubscription(plan);
     toast({
       title: t(`${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan Selected`, `تم اختيار خطة ${plan === "pro" ? "الاحترافية" : "الأعمال"}`),
@@ -62,9 +72,12 @@ const Pricing = () => {
         t("Limited - only 5 QR codes", "محدود - فقط 5 رموز QR"),
         t("Contains ads", "يحتوي على إعلانات")
       ],
-      buttonText: t("Start for Free", "ابدأ مجانًا"),
-      buttonVariant: "outline",
-      planId: "free"
+      buttonText: subscription === 'free' ? 
+        t("Current Plan", "الخطة الحالية") : 
+        t("Start for Free", "ابدأ مجانًا"),
+      buttonVariant: subscription === 'free' ? "default" : "outline",
+      planId: "free",
+      current: subscription === 'free'
     },
     {
       name: t("Pro", "احترافي"),
@@ -84,10 +97,13 @@ const Pricing = () => {
         t("Dynamic QR codes", "رموز QR ديناميكية"),
         t("No ads", "بدون إعلانات")
       ],
-      buttonText: t("Start Free Trial", "ابدأ الفترة التجريبية"),
+      buttonText: subscription === 'pro' ? 
+        t("Current Plan", "الخطة الحالية") : 
+        t("Start Free Trial", "ابدأ الفترة التجريبية"),
       buttonVariant: "default",
       popular: true,
-      planId: "pro"
+      planId: "pro",
+      current: subscription === 'pro'
     },
     {
       name: t("Business", "أعمال"),
@@ -106,9 +122,12 @@ const Pricing = () => {
         t("Priority support", "دعم ذو أولوية"),
         t("No ads", "بدون إعلانات")
       ],
-      buttonText: t("Start Free Trial", "ابدأ الفترة التجريبية"),
-      buttonVariant: "outline",
-      planId: "business"
+      buttonText: subscription === 'business' ? 
+        t("Current Plan", "الخطة الحالية") : 
+        t("Start Free Trial", "ابدأ الفترة التجريبية"),
+      buttonVariant: subscription === 'business' ? "default" : "outline",
+      planId: "business",
+      current: subscription === 'business'
     }
   ];
 
@@ -122,6 +141,15 @@ const Pricing = () => {
           {t("Choose the right plan for your QR code needs. Select the appropriate plan for your business or personal use.", 
              "اختر الخطة المناسبة لاحتياجات رمز QR الخاص بك. اختر الخطة المناسبة لعملك أو استخدامك الشخصي.")}
         </p>
+        
+        {subscriptionEndDate && subscription !== 'free' && (
+          <div className="mt-4 bg-blue-50 text-blue-700 p-3 rounded-md inline-block">
+            {t(
+              `Your current ${subscription} plan is active until ${subscriptionEndDate.toLocaleDateString()}`,
+              `اشتراكك الحالي في خطة ${subscription === 'pro' ? 'الاحترافية' : 'الأعمال'} نشط حتى ${subscriptionEndDate.toLocaleDateString()}`
+            )}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -129,14 +157,21 @@ const Pricing = () => {
           <div 
             key={index} 
             className={`border rounded-lg overflow-hidden ${
-              plan.popular 
-                ? "border-qrito-purple shadow-lg relative transform hover:scale-105 transition-transform duration-300" 
-                : "border-gray-200 hover:shadow-md transition-shadow duration-300"
+              plan.current 
+                ? "border-green-500 shadow-lg relative transform hover:scale-105 transition-transform duration-300" 
+                : plan.popular 
+                  ? "border-qrito-purple shadow-lg relative transform hover:scale-105 transition-transform duration-300" 
+                  : "border-gray-200 hover:shadow-md transition-shadow duration-300"
             }`}
           >
-            {plan.popular && (
+            {plan.popular && !plan.current && (
               <div className="absolute top-0 right-0 bg-qrito-purple text-white text-xs font-bold px-3 py-1 rounded-bl">
                 {t("Popular", "الأكثر شيوعًا")}
+              </div>
+            )}
+            {plan.current && (
+              <div className="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-bl">
+                {t("Current Plan", "الخطة الحالية")}
               </div>
             )}
             <div className="p-6">
@@ -147,7 +182,7 @@ const Pricing = () => {
                 <span className="text-gray-500 ml-1">/ {plan.period}</span>
               </div>
               
-              {plan.trialText && (
+              {plan.trialText && !plan.current && (
                 <div className="mb-4 bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs inline-block">
                   {plan.trialText}
                 </div>
@@ -157,14 +192,26 @@ const Pricing = () => {
               <Button 
                 className={`w-full ${
                   plan.buttonVariant === "default" 
-                    ? "bg-qrito-purple hover:bg-qrito-purple-dark" 
+                    ? plan.current 
+                      ? "bg-green-600 hover:bg-green-700"
+                      : "bg-qrito-purple hover:bg-qrito-purple-dark" 
                     : "border-qrito-purple text-qrito-purple hover:bg-qrito-background"
                 } transition-all duration-300`}
                 variant={plan.buttonVariant === "default" ? "default" : "outline"}
                 onClick={() => handlePlanSelection(plan.planId)}
+                disabled={plan.current}
               >
                 {plan.buttonText}
               </Button>
+              
+              {plan.current && subscriptionEndDate && subscription !== 'free' && (
+                <div className="mt-2 text-xs text-center text-gray-500">
+                  {t(
+                    `Active until ${subscriptionEndDate.toLocaleDateString()}`,
+                    `نشط حتى ${subscriptionEndDate.toLocaleDateString()}`
+                  )}
+                </div>
+              )}
             </div>
             <div className="border-t border-gray-200 p-6">
               <ul className="space-y-3">

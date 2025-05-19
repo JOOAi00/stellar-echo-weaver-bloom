@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -152,13 +153,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     
     // If user is already on a paid plan and wants to switch to another paid plan, they can't until current one expires
-    if (plan !== 'free' && subscription !== 'free' && subscriptionEndDate && new Date() < subscriptionEndDate) {
+    if (plan !== 'free' && subscription !== 'free' && subscription !== plan && subscriptionEndDate && new Date() < subscriptionEndDate) {
       toast({
-        variant: "default",
-        title: language === 'ar' ? "اشتراك نشط" : "Active Subscription",
-        description: language === 'ar' 
-          ? `لديك بالفعل اشتراك نشط. يرجى الانتظار حتى انتهاء فترة الاشتراك الحالية في ${subscriptionEndDate.toLocaleDateString()}.` 
-          : `You already have an active subscription. Please wait until your current subscription ends on ${subscriptionEndDate.toLocaleDateString()}.`,
+        variant: "destructive",
+        title: language === "ar" ? "اشتراك نشط" : "Active Subscription",
+        description: language === "ar" 
+          ? `لديك بالفعل اشتراك نشط في خطة "${subscription}". يجب الانتظار حتى انتهاء فترة الاشتراك الحالية في ${subscriptionEndDate.toLocaleDateString()} قبل التغيير إلى خطة أخرى.` 
+          : `You already have an active "${subscription}" subscription. You must wait until your current subscription ends on ${subscriptionEndDate.toLocaleDateString()} before changing to another plan.`,
       });
       return false;
     }
@@ -187,7 +188,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast({
           title: language === "ar" ? "تم تحديث الاشتراك" : "Subscription Updated",
           description: language === "ar" 
-            ? `أنت الآن على خطة ${plan} المجانية حتى ${endDate.toLocaleDateString()}` 
+            ? `أنت الآن على خطة ${plan === 'pro' ? 'احترافية' : 'أعمال'} المجانية حتى ${endDate.toLocaleDateString()}` 
             : `You are now on the ${plan} free trial until ${endDate.toLocaleDateString()}.`,
         });
       } else {

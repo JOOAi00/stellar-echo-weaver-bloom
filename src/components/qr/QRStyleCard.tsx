@@ -72,23 +72,6 @@ const QRStyleCard = ({
           
           <TabsContent value="design">
             <div className="space-y-6">
-              <div className="mb-6">
-                <div className="flex justify-between mb-2">
-                  <Label className="text-sm font-medium">
-                    {language === "ar" ? "حجم كود QR" : "QR Code Size"}
-                  </Label>
-                  <span className="text-sm text-gray-500">{dotSize}%</span>
-                </div>
-                <Slider
-                  value={[dotSize]}
-                  min={10}
-                  max={65}
-                  step={1}
-                  onValueChange={(value) => setDotSize(value[0])}
-                  className="w-full"
-                />
-              </div>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <h3 className="text-sm font-medium mb-2">
