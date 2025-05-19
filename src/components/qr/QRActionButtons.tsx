@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Download, Copy, Share2 } from 'lucide-react';
+import { Download, Copy, Share2, FileText } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/context';
 import { useNavigate } from 'react-router-dom';
-import { svgToPngDataUrl, shareImage } from '@/utils/imageUtils';
+import { svgToPngDataUrl } from '@/utils/imageUtils';
 
 interface QRActionButtonsProps {
   generated: boolean;
@@ -212,46 +212,7 @@ const QRActionButtons = ({
       // Convert SVG to PNG for better sharing compatibility
       const pngDataUrl = await svgToPngDataUrl(svg);
       
-      // First try using the native sharing dialog
-      if (navigator.share) {
-        try {
-          // Convert data URL to File
-          const blob = await fetch(pngDataUrl).then(r => r.blob());
-          const file = new File([blob], "qrcode.png", { type: "image/png" });
-          
-          await navigator.share({
-            title: language === "ar" ? "رمز QR" : "QR Code",
-            text: language === "ar" ? "إليك رمز QR الخاص بي!" : "Check out my QR code!",
-            files: [file]
-          });
-          
-          toast({
-            title: language === "ar" ? "تمت المشاركة" : "Shared",
-            description: language === "ar" ? "تمت مشاركة رمز QR بنجاح" : "QR code shared successfully",
-          });
-          return true;
-        } 
-        catch (error) {
-          console.warn("Error with Web Share API:", error);
-          // If file sharing fails, try without the file
-          try {
-            await navigator.share({
-              title: language === "ar" ? "رمز QR" : "QR Code",
-              text: language === "ar" ? "إليك رمز QR الخاص بي!" : "Check out my QR code!",
-            });
-            toast({
-              title: language === "ar" ? "تمت المشاركة" : "Shared",
-              description: language === "ar" ? "تمت مشاركة رمز QR بنجاح" : "QR code shared successfully",
-            });
-            return true;
-          } catch (secondError) {
-            console.warn("Error with simplified Web Share API:", secondError);
-            // Continue to fallback methods
-          }
-        }
-      }
-      
-      // If Web Share API is not available or failed, show a fallback dialog with options
+      // Create a download option that always works
       const newTab = window.open();
       if (newTab) {
         newTab.document.write(`
@@ -376,9 +337,10 @@ const QRActionButtons = ({
           title: language === "ar" ? "خيارات المشاركة" : "Sharing Options",
           description: language === "ar" ? "تم فتح خيارات المشاركة في علامة تبويب جديدة" : "Sharing options opened in a new tab",
         });
-        return true;
+        return;
       }
       
+      // If we can't open a new tab, show an error toast
       toast({
         variant: "destructive",
         title: language === "ar" ? "فشلت المشاركة" : "Share Failed",

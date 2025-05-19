@@ -27,6 +27,14 @@ const QRAdvancedOptions = ({
 }: QRAdvancedOptionsProps) => {
   const { language } = useUser();
   
+  const handleLevelChange = (value: string) => {
+    setLevel(value);
+  };
+
+  const handleFormatChange = (value: string) => {
+    setImageFormat(value);
+  };
+  
   return (
     <div className="space-y-6">
       <div className="mb-6">
@@ -52,7 +60,7 @@ const QRAdvancedOptions = ({
           <Label htmlFor="error-level" className="text-sm font-medium mb-2 block">
             {language === "ar" ? "مستوى تصحيح الخطأ" : "Error Correction Level"}
           </Label>
-          <Select value={level} onValueChange={setLevel}>
+          <Select value={level} onValueChange={handleLevelChange}>
             <SelectTrigger id="error-level">
               <SelectValue placeholder={language === "ar" ? "اختر المستوى" : "Select Level"} />
             </SelectTrigger>
@@ -72,7 +80,7 @@ const QRAdvancedOptions = ({
           <Label htmlFor="image-format" className="text-sm font-medium mb-2 block">
             {language === "ar" ? "تنسيق الصورة" : "Image Format"}
           </Label>
-          <Select value={imageFormat} onValueChange={setImageFormat}>
+          <Select value={imageFormat} onValueChange={handleFormatChange}>
             <SelectTrigger id="image-format">
               <SelectValue placeholder={language === "ar" ? "اختر التنسيق" : "Select Format"} />
             </SelectTrigger>

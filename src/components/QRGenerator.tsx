@@ -142,6 +142,8 @@ const QRGenerator = ({ type = 'url' }) => {
     setQrURL('');
   };
 
+  // Removed the business plan notification here
+
   return (
     <div className="w-full max-w-6xl mx-auto px-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

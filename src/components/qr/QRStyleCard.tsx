@@ -3,6 +3,8 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ColorPicker } from "@/components/ui/color-picker";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 import { useUser } from '@/context';
 import QRAdvancedOptions from './QRAdvancedOptions';
 
@@ -28,8 +30,10 @@ interface QRStyleCardProps {
 const QRStyleCard = ({
   dotColor,
   backgroundColor,
+  dotSize,
   setDotColor,
   setBackgroundColor,
+  setDotSize,
   cornerRadius,
   setCornerRadius,
   level,
@@ -59,6 +63,25 @@ const QRStyleCard = ({
           
           <TabsContent value="design">
             <div className="space-y-6">
+              {/* QR Code Size Slider */}
+              <div className="mb-6">
+                <div className="flex justify-between mb-2">
+                  <Label className="text-sm font-medium">
+                    {language === "ar" ? "حجم كود QR" : "QR Code Size"}
+                  </Label>
+                  <span className="text-sm text-gray-500">{dotSize}%</span>
+                </div>
+                <Slider
+                  value={[dotSize]}
+                  min={10}
+                  max={100}
+                  step={1}
+                  onValueChange={(value) => setDotSize(value[0])}
+                  className="w-full"
+                  aria-label={language === "ar" ? "حجم كود QR" : "QR Code size"}
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <h3 className="text-sm font-medium mb-2">
